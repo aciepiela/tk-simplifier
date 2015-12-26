@@ -19,7 +19,7 @@ sealed abstract class Node {
   val indent = " " * 4
 }
 
-case class IntNum(value: Integer) extends Node {
+case class IntNum(value: Int) extends Node {
   override def toStr = value.toString
 }
 
@@ -201,6 +201,10 @@ case class Tuple(list: List[Node]) extends Node {
   override def toStr = if (list.length == 0) "()"
   else if (list.length == 1) "(" + list(0).toStr + ",)"
   else list.map(_.toStr).mkString("(", ",", ")")
+}
+
+case class Empty() extends Node {
+  override def toStr = ""
 }
 
 
