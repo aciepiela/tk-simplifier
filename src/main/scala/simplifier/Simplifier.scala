@@ -47,7 +47,7 @@ object UnarySimplifier {
 
 object NodeListSimplifier {
   def apply(node: NodeList) = {
-    var nodes = node.list.map(n => Simplifier.simplify(n)).filter(n => !n.isInstanceOf[Empty])
+    var nodes = node.list.map(n => Simplifier(n)).filter(n => !n.isInstanceOf[Empty])
     val uniqueAssignments = nodes.filter(n => n.isInstanceOf[Assignment]).map(n => n.asInstanceOf[Assignment])
       .groupBy(a => a.left).mapValues(list => list.last).values.toList
     nodes = nodes.filter(n => !n.isInstanceOf[Assignment] || uniqueAssignments.contains(n))
@@ -61,8 +61,8 @@ object NodeListSimplifier {
 
 object AssignmentSimplifier {
   def apply(node: Assignment) = {
-    val l = Simplifier.simplify(node.left)
-    val r = Simplifier.simplify(node.right)
+    val l = Simplifier(node.left)
+    val r = Simplifier(node.right)
     if (l == r) {
       Empty()
     } else {
@@ -80,7 +80,7 @@ object KeyDatumListSimplifier {
 
 object BinExprSimplifier {
   def apply(node: BinExpr) = {
-    val simplified = BinExpr(node.op, Simplifier.simplify(node.left), Simplifier.simplify(node.right))
+    val simplified = BinExpr(node.op, Simplifier(node.left), Simplifier(node.right))
     simplified match {
       case BinExpr("+", x, IntNum(0)) => x
       case BinExpr("+", IntNum(0), x) => x
@@ -117,12 +117,12 @@ object BinExprSimplifier {
 }
 
 object TupleSimplifier {
-  def apply(node: Tuple) = Tuple(node.list map Simplifier.simplify)
+  def apply(node: Tuple) = Tuple(node.list map Simplifier.apply)
 }
 
 object WhileInstrSimplifier {
   def apply(node: WhileInstr) = {
-    val simplifiedCondition = Simplifier.simplify(node.cond)
+    val simplifiedCondition = Simplifier(node.cond)
     if (simplifiedCondition == FalseConst()) {
       Empty()
     } else {
@@ -133,7 +133,7 @@ object WhileInstrSimplifier {
 
 object IfElseExprSimplifier {
   def apply(node: IfElseExpr) = {
-    Simplifier.simplify(node.cond) match {
+    Simplifier(node.cond) match {
       case TrueConst() => Simplifier(node.left)
       case FalseConst() => Simplifier(node.right)
       case other => node
@@ -143,7 +143,7 @@ object IfElseExprSimplifier {
 
 object IfElseInstrSimplifier {
   def apply(node: IfElseInstr) = {
-    Simplifier.simplify(node.cond) match {
+    Simplifier(node.cond) match {
       case TrueConst() => Simplifier(node.left)
       case FalseConst() => Simplifier(node.right)
       case other => node
