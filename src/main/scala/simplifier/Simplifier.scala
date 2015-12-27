@@ -1,5 +1,7 @@
 package simplifier
 
+import java.lang.Math
+
 import AST._
 
 // to implement
@@ -79,12 +81,26 @@ object KeyDatumListSimplifier {
 }
 
 object BinExprSimplifier {
+
+  def nonCommutativeEquals(b1: BinExpr, b2: BinExpr) = b1.left == b2.left && b1.right == b2.right
+
+  def commutativeEquals(b1: BinExpr, b2: BinExpr) = nonCommutativeEquals(b1, b2) || (b1.left == b2.right && b1.right == b2.left)
+
+  def equals(left: BinExpr, right: BinExpr) = {
+    if (left.op == right.op && (left.op == "+" || left.op == "*" || left.op == "and" || left.op == "or")) {
+      commutativeEquals(left, right)
+    } else {
+      nonCommutativeEquals(left, right)
+    }
+  }
+
   def apply(node: BinExpr) = {
-    val simplified = BinExpr(node.op, Simplifier(node.left), Simplifier(node.right))
+    val simplified = if (node.op == "**") node else BinExpr(node.op, Simplifier(node.left), Simplifier(node.right))
     simplified match {
       case BinExpr("+", x, IntNum(0)) => x
       case BinExpr("+", IntNum(0), x) => x
       case BinExpr("-", x, y) if x == y => IntNum(0)
+      case BinExpr("-", BinExpr("+", x, y), z) if x == z => y
       case BinExpr("*", x, IntNum(1)) => x
       case BinExpr("*", IntNum(1), x) => x
       case BinExpr("*", x, IntNum(0)) => IntNum(0)
@@ -107,11 +123,22 @@ object BinExprSimplifier {
       case BinExpr("<", x, y) if x == y => FalseConst()
       case BinExpr("+", Unary("-", x), y) if x == y => IntNum(0)
       case BinExpr("/", x, y) if x == y => IntNum(1)
+      case BinExpr("/", x, BinExpr("/", y, z)) if x == y => z
+      case BinExpr("*", x, BinExpr("/", IntNum(1), y)) => BinExpr("/", x, y)
       case BinExpr("+", IntNum(x), IntNum(y)) => IntNum(x + y)
       case BinExpr("-", IntNum(x), IntNum(y)) => IntNum(x - y)
       case BinExpr("*", IntNum(x), IntNum(y)) => IntNum(x * y)
+      case BinExpr("**", BinExpr("**", x, IntNum(y)), IntNum(z)) => Simplifier(BinExpr("**", x, IntNum(Math.pow(y, z).toInt)))
+      case BinExpr("**", BinExpr("**", x, Variable(y)), Variable(z)) => Simplifier(BinExpr("**", x, BinExpr("*", Variable(y), Variable(z))))
+      case BinExpr("**", IntNum(x), IntNum(y)) => IntNum(Math.pow(x, y).toInt)
+      case BinExpr("**", x, IntNum(0)) => IntNum(1)
+      case BinExpr("**", x, IntNum(1)) => x
       case BinExpr("+", ElemList(x), ElemList(y)) => ElemList(x ++ y)
       case BinExpr("+", Tuple(elems1), Tuple(elems2)) => Tuple(elems1 ++ elems2)
+      case BinExpr("/", b1: BinExpr, b2: BinExpr) if equals(b1, b2) => IntNum(1)
+      case BinExpr("/", b1: BinExpr, b2: BinExpr) if equals(b1, b2) => IntNum(1)
+      case BinExpr("and", b1: BinExpr, b2: BinExpr) if equals(b1, b2) => b1
+      case BinExpr("or", b1: BinExpr, b2: BinExpr) if equals(b1, b2) => b1
       case other => other
     }
   }

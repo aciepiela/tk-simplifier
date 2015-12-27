@@ -8,7 +8,7 @@ class Parser extends JavaTokenParsers {
   val precedenceList: List[List[String]] = List(
     List("is", ">=", "<=", "==", "!=", "<", ">"), // order matters also within inner list, longer op should go before shorter one, e.g. "<=" before "<", if one is a prefix of another
     List("+", "-"),
-    List("*", "/", "%")
+    List("**", "*", "/", "%")
   )
 
   val minPrec = 0
