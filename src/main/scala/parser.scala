@@ -74,8 +74,8 @@ class Parser extends JavaTokenParsers {
       case formal_args ~ body => LambdaDef(IdList(formal_args), body)
     }
       | or_expr
+      | tuple
     )
-
 
   def or_expr: Parser[Node] = rep1sep(and_expr, "or") ^^ {
     case xs => (xs.head /: xs.tail) (BinExpr("or", _, _))
@@ -85,6 +85,18 @@ class Parser extends JavaTokenParsers {
     case xs => (xs.head /: xs.tail) (BinExpr("and", _, _))
   }
 
+  val tuple_element: Parser[Node] = (
+    floatLiteral ^^ FloatNum
+      | intLiteral ^^ IntNum
+      | stringLiteral ^^ StringConst
+      | "True" ^^^ TrueConst()
+      | "False" ^^^ FalseConst()
+      | id ^^ Variable
+    )
+
+  def tuple: Parser[Tuple] = ("(" ~> tuple_element) ~ ("," ~> tuple_element).* ~ ")" ^^ {
+    case elem ~ elements ~ s => Tuple(elem :: elements)
+  }
 
   def not_expr: Parser[Node] = (
 
@@ -130,6 +142,7 @@ class Parser extends JavaTokenParsers {
     case "-" ~ expression => Unary("-", expression)
     }
       | primary
+      | tuple
     )
 
 

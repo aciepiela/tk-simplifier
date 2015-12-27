@@ -111,6 +111,7 @@ object BinExprSimplifier {
       case BinExpr("-", IntNum(x), IntNum(y)) => IntNum(x - y)
       case BinExpr("*", IntNum(x), IntNum(y)) => IntNum(x * y)
       case BinExpr("+", ElemList(x), ElemList(y)) => ElemList(x ++ y)
+      case BinExpr("+", Tuple(elems1), Tuple(elems2)) => Tuple(elems1 ++ elems2)
       case other => other
     }
   }

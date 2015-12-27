@@ -172,7 +172,7 @@ case class ClassDef(name: String, inherit_list: Node, suite: Node) extends Node 
     var inheritStr = ""
     val suiteStr = ":\n" + suite.toStr.replaceAll("(?m)^", indent)
     inherit_list match {
-      case NodeList(x) => if (x.length > 0) inheritStr = "(" + x.map(_.toStr).mkString("", ",", "") + ")"
+      case NodeList(x) => if (x.nonEmpty) inheritStr = "(" + x.map(_.toStr).mkString("", ",", "") + ")"
       case _ =>
     }
     str + inheritStr + suiteStr
@@ -198,8 +198,8 @@ case class ElemList(list: List[Node]) extends Node {
 }
 
 case class Tuple(list: List[Node]) extends Node {
-  override def toStr = if (list.length == 0) "()"
-  else if (list.length == 1) "(" + list(0).toStr + ",)"
+  override def toStr = if (list.isEmpty) "()"
+  else if (list.length == 1) "(" + list.head.toStr + ",)"
   else list.map(_.toStr).mkString("(", ",", ")")
 }
 
