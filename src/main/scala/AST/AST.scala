@@ -207,5 +207,35 @@ case class Empty() extends Node {
   override def toStr = ""
 }
 
+case class Elif(expression: Node, suit: Node) extends Node {
+  override def toString = {
+    var str = "elif " + expression.toStr + ":\n"
+    str += suit.toStr.replaceAll("(?m)^", indent)
+    str
+  }
+}
+
+case class IfElifElseInstr(cond: Node, left: Node, elifs: List[Elif], right: Node) extends Node {
+  override def toStr = {
+    var str = "if " + cond.toStr + ":\n"
+    str += left.toStr.replaceAll("(?m)^", indent)
+    str += "\n"
+    str += elifs.map(_.toString).mkString("\n")
+    str += "\nelse:\n"
+    str += right.toStr.replaceAll("(?m)^", indent)
+    str
+  }
+}
+
+case class IfElifInstr(cond: Node, left: Node, elifs: List[Elif]) extends Node {
+  override def toStr = {
+    var str = "if " + cond.toStr + ":\n"
+    str += left.toStr.replaceAll("(?m)^", indent)
+    str += "\n"
+    str += elifs.map(_.toString).mkString("\n")
+    str
+  }
+}
+
 
         

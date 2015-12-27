@@ -140,7 +140,8 @@ class Parser extends JavaTokenParsers {
       | "[" ~> expr_list_comma <~ "]" ^^ {
       case NodeList(x) => ElemList(x)
       case l => {
-        println("Warn: expr_list_comma didn't return NodeList"); l
+        println("Warn: expr_list_comma didn't return NodeList");
+        l
       }
     }
       | "{" ~> key_datum_list <~ "}"
@@ -235,10 +236,16 @@ class Parser extends JavaTokenParsers {
     case target ~ expression => Assignment(target, expression)
   }
 
+  def elif_instr: Parser[Elif] = ("elif" ~> expression) ~ (":" ~> suite) ^^ {
+    case expression ~ suite => Elif(expression, suite)
+  }
+
   def if_else_stmt: Parser[Node] = (
-    "if" ~> expression ~ (":" ~> suite) ~ ("else" ~ ":" ~> suite).? ^^ {
-      case expression ~ suite1 ~ Some(suite2) => IfElseInstr(expression, suite1, suite2)
-      case expression ~ suite ~ None => IfInstr(expression, suite)
+    "if" ~> expression ~ (":" ~> suite) ~ (elif_instr).* ~ ("else" ~ ":" ~> suite).? ^^ {
+      case expression ~ suite1 ~ Nil ~ Some(suite2) => IfElseInstr(expression, suite1, suite2)
+      case expression ~ suite ~ Nil ~ None => IfInstr(expression, suite)
+      case expression ~ suite1 ~ elifs ~ Some(suite2) => IfElifElseInstr(expression, suite1, elifs, suite2)
+      case expression ~ suite1 ~ elifs ~ None => IfElifInstr(expression, suite1, elifs)
     }
     )
 
