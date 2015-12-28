@@ -21,6 +21,17 @@ object Simplifier {
     case node: WhileInstr => WhileInstrSimplifier(node)
     case node: IfElseExpr => IfElseExprSimplifier(node)
     case node: IfElseInstr => IfElseInstrSimplifier(node)
+    case node: Subscription => SubscriptionSimplifier(node)
+    case node: GetAttr => GetAttrSimplifier(node)
+    case node: IfInstr => IfInstrSimplifier(node)
+    case node: ReturnInstr => ReturnInstrSimplifier(node)
+    case node: PrintInstr => PrintInstrSimplifier(node)
+    case node: FunCall => FunCallSimplifier(node)
+    case node: FunDef => FunDefSimplifier(node)
+    case node: LambdaDef => LambdaDefSimplifier(node)
+    case node: ClassDef => ClassDefSimplifier(node)
+    case node: ElemList => ElemListSimplifier(node)
+    case node: KeyDatum => KeyDatumSimplifier(node)
     case other => node
   }
 }
@@ -164,7 +175,7 @@ object IfElseExprSimplifier {
     Simplifier(node.cond) match {
       case TrueConst() => Simplifier(node.left)
       case FalseConst() => Simplifier(node.right)
-      case other => node
+      case other => Simplifier(node)
     }
   }
 }
@@ -174,7 +185,51 @@ object IfElseInstrSimplifier {
     Simplifier(node.cond) match {
       case TrueConst() => Simplifier(node.left)
       case FalseConst() => Simplifier(node.right)
-      case other => node
+      case other => IfElseInstr(node.cond, Simplifier(node.left), Simplifier(node.right))
     }
   }
+}
+
+object SubscriptionSimplifier {
+  def apply(node: Subscription) = Subscription(Simplifier(node.expr), Simplifier(node.sub))
+}
+
+object GetAttrSimplifier {
+  def apply(node: GetAttr) = GetAttr(Simplifier(node.expr), node.attr)
+}
+
+object IfInstrSimplifier {
+  def apply(node: IfInstr) = IfInstr(Simplifier(node.cond), Simplifier(node.left))
+}
+
+object ReturnInstrSimplifier {
+  def apply(node: ReturnInstr) = ReturnInstr(Simplifier(node.expr))
+}
+
+object PrintInstrSimplifier {
+  def apply(node: PrintInstr) = PrintInstr(Simplifier(node.expr))
+}
+
+object FunCallSimplifier {
+  def apply(node: FunCall) = FunCall(Simplifier(node.name), Simplifier(node.args_list))
+}
+
+object FunDefSimplifier {
+  def apply(node: FunDef) = FunDef(node.name, Simplifier(node.formal_args), Simplifier(node.body))
+}
+
+object LambdaDefSimplifier {
+  def apply(node: LambdaDef) = LambdaDef(Simplifier(node.formal_args), Simplifier(node.body))
+}
+
+object ClassDefSimplifier {
+  def apply(node: ClassDef) = ClassDef(node.name, Simplifier(node.inherit_list), Simplifier(node.suite))
+}
+
+object ElemListSimplifier {
+  def apply(node: ElemList) = ElemList(node.list map Simplifier.simplify)
+}
+
+object KeyDatumSimplifier {
+  def apply(node: KeyDatum) = KeyDatum(Simplifier(node.key), Simplifier(node.value))
 }
