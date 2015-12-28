@@ -142,6 +142,13 @@ object BinExprSimplifier {
       case BinExpr("**", BinExpr("**", x, IntNum(y)), IntNum(z)) => Simplifier(BinExpr("**", x, IntNum(Math.pow(y, z).toInt)))
       case BinExpr("**", BinExpr("**", x, Variable(y)), Variable(z)) => Simplifier(BinExpr("**", x, BinExpr("*", Variable(y), Variable(z))))
       case BinExpr("**", IntNum(x), IntNum(y)) => IntNum(Math.pow(x, y).toInt)
+      case BinExpr("**", BinExpr("*", BinExpr("**", Variable(a), Variable(y)), Variable(b)), Variable(z)) if a == b =>
+        BinExpr("**", Variable(a), BinExpr("+", Variable(y), Variable(z)))
+      case BinExpr(op, BinExpr("*", Variable(x), Variable(a)), BinExpr("*", Variable(y), Variable(b))) if a == b && (op == "+" || op == "-") =>
+        BinExpr("*", BinExpr(op, Variable(x), Variable(y)), Variable(a))
+      case BinExpr(op, BinExpr("*", Variable(a), Variable(x)), BinExpr("*", Variable(b), Variable(y))) if a == b && (op == "+" || op == "-") =>
+        BinExpr("*", Variable(a), BinExpr(op, Variable(x), Variable(y)))
+      case BinExpr("-", BinExpr("*", IntNum(n), Variable(x)), Variable(y)) if x == y => Simplifier(BinExpr("*", IntNum(n - 1), Variable(y)))
       case BinExpr("**", x, IntNum(0)) => IntNum(1)
       case BinExpr("**", x, IntNum(1)) => x
       case BinExpr("+", ElemList(x), ElemList(y)) => ElemList(x ++ y)
