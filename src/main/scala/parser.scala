@@ -94,8 +94,8 @@ class Parser extends JavaTokenParsers {
       | id ^^ Variable
     )
 
-  def tuple: Parser[Tuple] = ("(" ~> tuple_element) ~ ("," ~> tuple_element).* ~ ")" ^^ {
-    case elem ~ elements ~ s => Tuple(elem :: elements)
+  def tuple: Parser[Tuple] = ("(" ~> tuple_element) ~ ("," ~> tuple_element).* <~ ")" ^^ {
+    case elem ~ elements => Tuple(elem :: elements)
   }
 
   def not_expr: Parser[Node] = (
