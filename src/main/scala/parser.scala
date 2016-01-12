@@ -37,7 +37,8 @@ class Parser extends JavaTokenParsers {
     "print\\b".r |
     "return\\b".r |
     "True\\b".r |
-    "while\\b".r
+    "while\\b".r |
+    "elif\\b".r
 
   val floatLiteral: Parser[Double] =
     """\d+(\.\d*)|\.\d+""".r ^^ {
